@@ -1,46 +1,66 @@
-import requests, json, os, random
+import os
+import requests
+import json
 from datetime import datetime
 
-BLOGGER_API_KEY = os.environ["BLOGGER_API_KEY"]
-GEMINI_API_KEY = os.environ["GEMINI_API_KEY"]
-BLOG_ID = os.environ["BLOG_ID"]
+# Blogger + Gemini API Keys
+BLOGGER_API_KEY = os.environ.get("BLOGGER_API_KEY")
+BLOGGER_BLOG_ID = os.environ.get("BLOGGER_BLOG_ID")
+GOOGLE_API_KEY = os.environ.get("GOOGLE_API_KEY")
 
-topics = [
-    "Best ways to earn money online in 2025",
-    "Latest technology trends in India 2025",
-    "Health and fitness tips for busy people",
-    "Personal finance and savings strategies",
-    "Motivation for students preparing for exams",
-    "AI tools every Indian must know in 2025",
-    "Top startup ideas in India 2025",
-    "Digital marketing trends in 2025",
-    "Yoga and meditation benefits",
-    "Cyber security awareness for beginners"
-]
+def log(msg):
+    """Simple logger with time"""
+    print(f"[{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}] {msg}")
 
-def generate_article(topic):
-    url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent?key={GEMINI_API_KEY}"
+def generate_post():
+    url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent?key={GOOGLE_API_KEY}"
+
+    prompt = """
+    Write a 1000+ word SEO-friendly blog post in Hindi on a trending technology topic.
+    Include: intro, basics, methods, benefits, uses, FAQs, and conclusion.
+    Tone: Human-like and engaging.
+    """
+
+    data = {
+        "contents": [{"parts": [{"text": prompt}]}]
+    }
+
+    response = requests.post(url, headers={"Content-Type": "application/json"}, data=json.dumps(data))
+    if response.status_code != 200:
+        log(f"❌ Error from Gemini API: {response.text}")
+        return None, None
+
+    result = response.json()
+    try:
+        article = result["candidates"][0]["content"]["parts"][0]["text"]
+    except Exception as e:
+        log(f"❌ Error parsing Gemini response: {e}")
+        return None, None
+
+    title = "आज की टेक्नोलॉजी अपडेट्स"
+    return title, article
+
+def post_to_blogger(title, content):
+    url = f"https://www.googleapis.com/blogger/v3/blogs/{BLOGGER_BLOG_ID}/posts/?key={BLOGGER_API_KEY}"
+    data = {
+        "kind": "blogger#post",
+        "blog": {"id": BLOGGER_BLOG_ID},
+        "title": title,
+        "content": content
+    }
+
     headers = {"Content-Type": "application/json"}
-    prompt = f"Write a 1500+ word SEO-friendly Hindi blog article on: {topic}. Include intro, subheadings, FAQs, and conclusion. Human tone."
-    data = {"contents":[{"parts":[{"text": prompt}]}]}
-    res = requests.post(url, headers=headers, data=json.dumps(data)).json()
-    return res["candidates"][0]["content"]["parts"][0]["text"]
+    response = requests.post(url, headers=headers, data=json.dumps(data))
 
-def post_to_blogger(title, content, topic):
-    # Free stock image (auto insert based on topic keyword)
-    top_img = f"<img src='https://source.unsplash.com/1200x600/?{topic.replace(' ', '')}' alt='{topic}'/>"
-    bottom_img = f"<img src='https://source.unsplash.com/1200x600/?{topic.replace(' ', '')},india' alt='{topic}'/>"
-
-    final_content = f"{top_img}<br>{content}<br>{bottom_img}"
-
-    url = f"https://www.googleapis.com/blogger/v3/blogs/{BLOG_ID}/posts/?key={BLOGGER_API_KEY}"
-    headers = {"Content-Type": "application/json"}
-    data = {"kind": "blogger#post", "title": title, "content": final_content}
-    return requests.post(url, headers=headers, data=json.dumps(data)).json()
+    if response.status_code == 200:
+        log(f"✅ Post published successfully: {title}")
+    else:
+        log(f"❌ Failed to publish post: {response.text}")
 
 if __name__ == "__main__":
-    topic = random.choice(topics)
-    print(f"Generating article on: {topic}")
-    article = generate_article(topic)
-    result = post_to_blogger(topic, article, topic)
-    print("✅ Posted:", result.get("url", "Check Blogger"))
+    log("🚀 Starting Auto Blogger Bot...")
+    title, article = generate_post()
+    if article:
+        post_to_blogger(title, article)
+    else:
+        log("⚠️ No article generated. Skipping post.")

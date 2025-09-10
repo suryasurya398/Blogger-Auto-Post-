@@ -13,11 +13,12 @@ def log(msg):
     print(f"[{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}] {msg}")
 
 def generate_post():
-    url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent?key={GOOGLE_API_KEY}"
+    url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key={GOOGLE_API_KEY}"
 
     prompt = """
     Write a 1000+ word SEO-friendly blog post in Hindi on a trending technology topic.
     Include: intro, basics, methods, benefits, uses, FAQs, and conclusion.
+    Tone: Human-like and engaging.Include: intro, basics, methods, benefits, uses, FAQs, and conclusion.
     Tone: Human-like and engaging.
     """
 

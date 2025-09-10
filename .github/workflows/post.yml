@@ -28,4 +28,4 @@ jobs:
         BLOGGER_API_KEY: ${{ secrets.BLOGGER_API_KEY }}
         BLOGGER_BLOG_ID: ${{ secrets.BLOGGER_BLOG_ID }}
         GOOGLE_API_KEY: ${{ secrets.GOOGLE_API_KEY }}
-      run: python bot.py
+      run: python main.py

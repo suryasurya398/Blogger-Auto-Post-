@@ -1,31 +1,29 @@
-name: Auto Blogger Post
+name: Auto Blogger
 
 on:
-  workflow_dispatch:   # manual run
   schedule:
-    - cron: "30 0 * * *"   # 6:00 AM IST (0:30 UTC)
+    - cron: "30 0 * * *"  # Roz subah 6:00 AM IST (0:30 UTC)
+  workflow_dispatch:
 
 jobs:
   build:
     runs-on: ubuntu-latest
-
     steps:
-    - name: Checkout repo
-      uses: actions/checkout@v3
+      - name: Checkout Repo
+        uses: actions/checkout@v3
 
-    - name: Set up Python
-      uses: actions/setup-python@v4
-      with:
-        python-version: "3.x"
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: "3.10"
 
-    - name: Install dependencies
-      run: |
-        python -m pip install --upgrade pip
-        pip install requests google-auth google-auth-oauthlib google-auth-httplib2
+      - name: Install Dependencies
+        run: pip install -r requirements.txt
 
-    - name: Run bot
-      env:
-        BLOGGER_API_KEY: ${{ secrets.BLOGGER_API_KEY }}
-        BLOGGER_BLOG_ID: ${{ secrets.BLOGGER_BLOG_ID }}
-        GOOGLE_API_KEY: ${{ secrets.GOOGLE_API_KEY }}
-      run: python main.py
+      - name: Run Script
+        env:
+          BLOGGER_SECRET_EMAIL: ${{ secrets.BLOGGER_SECRET_EMAIL }}
+          GMAIL_USER: ${{ secrets.GMAIL_USER }}
+          GMAIL_PASS: ${{ secrets.GMAIL_PASS }}
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+        run: python main.py

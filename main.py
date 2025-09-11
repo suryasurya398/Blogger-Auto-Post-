@@ -28,7 +28,8 @@ def generate_article():
     except Exception as e:
         print("❌ Gemini error:", str(e))
         return None
-
+def clean_text(s):
+    return "".join(ch for ch in s if 32 <= ord(ch) <= 126)  # sirf normal ASCII rakho
 def send_email(subject, body):
     msg = MIMEMultipart()
     msg["From"] = GMAIL_USER

@@ -1,10 +1,10 @@
+import os
 import smtplib
 import ssl
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
-import requests
 import datetime
-import os
+import google.generativeai as genai
 
 # ---- Load from GitHub Secrets (Environment Vars) ----
 BLOGGER_SECRET_EMAIL = os.getenv("BLOGGER_SECRET_EMAIL")
@@ -12,19 +12,21 @@ GMAIL_USER = os.getenv("GMAIL_USER")
 GMAIL_PASS = os.getenv("GMAIL_PASS")
 GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")
 
+# Configure Gemini
+genai.configure(api_key=GEMINI_API_KEY)
+
 def generate_article():
-    url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key={GEMINI_API_KEY}"
+    model = genai.GenerativeModel("gemini-1.5-flash")
     prompt = """
     Write a 1000+ word SEO-friendly blog post in Hindi on a trending topic for Indian readers.
     Include: intro, basics, methods, benefits, FAQs, and conclusion.
     Tone: human-like, engaging, and unique.
     """
-    res = requests.post(url, json={"contents":[{"parts":[{"text":prompt}]}]})
-    data = res.json()
     try:
-        return data['candidates'][0]['content']['parts'][0]['text']
+        response = model.generate_content(prompt)
+        return response.text
     except Exception as e:
-        print("❌ Gemini error:", data)
+        print("❌ Gemini error:", str(e))
         return None
 
 def send_email(subject, body):
